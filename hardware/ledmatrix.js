@@ -1,13 +1,20 @@
 /**
  * Created by chad on 1/24/17.
  */
-var ledmatrix = require("sense-hat-led");
-var Promise = require('promise');
+const ledmatrix = require("sense-hat-led");
+//var Promise = require('promise');
 
-var red = [255, 0, 0],
-    green = [0, 255, 0],
-    blue = [0, 0, 255],
-    black = [0, 0, 0];
+const color = {
+    red: [255, 0, 0],
+    green: [0, 255, 0],
+    blue: [0, 0, 255],
+    purple: [102,0,204],
+    pink: [255,0,255],
+    orange: [255,128,0],
+    yellow: [255,255,0],
+    black: [0, 0, 0],
+    white: [255,255,255]
+};
 
 //playing with promises
 
@@ -43,20 +50,24 @@ exports.init = function () {
 
     console.log("LED Matrix loaded");
 
-    setColor(red, 500)
+    setColor(color.white, 500)
         .then(function (result) {
-            return setColor(green, 500)
+            return setColor(color.red, 500)
         })
         .then(function (result) {
-            return setColor(blue, 500)
+            return setColor(color.green, 500)
         })
         .then(function (result) {
-            return setColor(black, 500)
+            return setColor(color.blue, 500)
+        })
+        .then(function (result) {
+            return setColor(color.black, 500)
         });
 
 };
 
-
+/****Call back version ********/
+/*
 exports.initOld = function () {
 
     console.log("LED Matrix loaded");
@@ -77,5 +88,5 @@ exports.initOld = function () {
         1000);
 
 };
-
+*/
 exports.setColor = setColor;

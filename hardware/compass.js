@@ -3,10 +3,10 @@
  */
 
 const Readable = require('stream').Readable;
-var util = require('util');
+const util = require('util');
 
-var nodeimu  = require('nodeimu');
-var IMU = new nodeimu.IMU();
+const nodeimu  = require('nodeimu');
+const IMU = new nodeimu.IMU();
 
 function headingCorrection(h, offset) {
     if (typeof offset ==='undefined')
@@ -14,7 +14,7 @@ function headingCorrection(h, offset) {
 
     // Once you have your heading, you must then add your 'Declination Angle', which is the 'Error' of the magnetic field in your location.
     // Find yours here: http://www.magnetic-declination.com/
-    var declinationAngle =  0.2563; //0.03106686;
+    const declinationAngle =  0.2563; //0.03106686;
 
     h += declinationAngle + offset;
 
@@ -44,11 +44,11 @@ class Compass extends Readable {
         super(opt);
     }
     _read() {
-        var self = this;
+        let self = this;
     }
 }
 
-var intVar, lastHeading;
+let intVar, lastHeading;
 
 function getHeading(cb) {
     intVar = setInterval(function(){
@@ -59,7 +59,7 @@ function getHeading(cb) {
 function fixHeading(err, heading) {
     if (err) console.log('error - no heading');
     else{
-        var h = headingToDegree(headingCorrection(heading.tiltHeading));
+        let h = headingToDegree(headingCorrection(heading.tiltHeading));
 
         if ( Math.abs(h - lastHeading) > compass.changeThreshold || lastHeading == null) {
             compass.push(h.toFixed(0));
@@ -69,14 +69,14 @@ function fixHeading(err, heading) {
     }
 }
 
-var compass = new Compass;
+let compass = new Compass;
 
 compass.interval = 500;
 compass.changeThreshold = 1.1;
 compass.init = function(){
     getHeading(function(err, heading) {
         if (err)
-            compass.emitter.emit('error', err)
+            compass.emitter.emit('error', err);
     });
 };
 compass.stop= function(){
