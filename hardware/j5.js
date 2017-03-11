@@ -2,6 +2,7 @@
  * Created by chad on 3/4/17.
  */
 
+'use strict';
 
 /***** Johnny Five Setup *****/
 
@@ -42,8 +43,106 @@ board.on("ready", function () {
 
 /***** Motor controls *****/
 
+class Command {
+    constructor(name, onFunc, offFunc){
+    this.name = name;
+    this.on = onFunc;
+    this.off = offFunc;
+
+    return this;
+    }
+
+    //arrow functions below to pass `this` through each level
+    move(t, speed, cb){
+
+        if (arguments.length <3 && typeof speed == 'function'){
+            cb = speed;
+            speed = null;
+        }
+        //todo: test this
+        else
+            if (arguments.length ==1 && typeof t == 'function'){
+                cb = t;
+                t = null;
+                speed = null;
+            }
+
+        //todo: fix my promise setup to return a reject here
+        if (hwReady == false)
+            return;
+
+        if (isNaN(t)) t = 1;
+
+        let pulseDuration = 100; //how long to time each pulse in ms
+        let pulseOn = false;
+        let running = true;
+
+        let timer;
+
+        let pulse = ()=> {
+            if (running == false)        //this might be redundant
+                return false;
+
+            pulseOn = !pulseOn;
+            let duration = pulseOn == true ? Math.round(pulseDuration * speed) : Math.round(pulseDuration * (1 - speed));
+            let state = ()=> (pulseOn == true ? this.on() : this.off());
+
+            timer = setTimeout(() => {
+                state();
+                //console.log("I am " + (pulseOn == true ? "on" : "off" ) + " for " + duration);
+                pulse();
+            }, duration);
+        };
+
+        console.log(this.name + (speed ? " at " + speed + " speed": "" ) + " for " + t + " seconds");
+
+        this.on();
+
+        if (speed)
+            if (!isNaN(speed))  //make sure it is a number
+                pulse();
+
+        if (cb)
+            setTimeout( ()=> {
+                    running = false;
+                    clearTimeout(timer);
+                    this.off();
+                    cb();
+                }
+                , t * 1000);
+        else
+            return new Promise((resolve) => {
+                setTimeout( ()=> {
+                        running = false;
+                        clearTimeout(timer);
+                        this.off();
+                        resolve();
+                    }
+                    , t * 1000);
+            });
+    }
+
+}
+
+let forward = new Command(
+    "forward",
+    function(){
+        rf.high();
+        lf.high();
+    },
+    function(){
+        rf.low();
+        lf.low();
+    });
+
+let backward = new Command("backward", ()=>{rb.high();lb.high();}, ()=>{lb.low(); rb.low()});
+let spinright = new Command("spinright", ()=>{lf.high();rb.high();}, ()=>{lf.low(); rb.low()});
+let spinleft = new Command("spinleft", ()=>{rf.high();lb.high();}, ()=>{rf.low(); lb.low()});
+
+
 //todo: prototype this and use to create other functions
-function forward(t, speed, cb) {
+//todo: see why this doesn't seem to work below 50%
+function oldForward(t, speed, cb) {
     if (hwReady == false)
         return false;
 
@@ -63,19 +162,20 @@ function forward(t, speed, cb) {
         let duration = pulseOn == true ? Math.round(pulseDuration * speed) : Math.round(pulseDuration * (1 - speed));
 
         timer = setTimeout(() => {
-            rf.write(state ^= 0x01);
-            lf.write(state ^= 0x01);
-            console.log("I am " + (pulseOn == true ? "on" : "off" ) + " for " + duration);
+            state ^= 0x01;
+            rf.write(state);
+            lf.write(state);
+            //console.log("I am " + (pulseOn == true ? "on" : "off" ) + " for " + duration + "ms");
             pulse();
         }, duration);
     }
 
-    console.log("Forward: pulsing rf & lf" + (speed ? " at" + speed:"" ) + " for " + t + " seconds");
+    console.log("Forward: rf & lf" + (speed ? " at " + speed : "" ) + " for " + t + " seconds");
 
     rf.high();
     lf.high();
 
-    if(speed)
+    if (speed)
         if (!isNaN(speed))  //make sure it is a number
             pulse();
 
@@ -102,7 +202,7 @@ function forward(t, speed, cb) {
 }
 
 
-function backward(t) {
+function oldBackward(t) {
     if (hwReady == false)
         return;
 
@@ -144,14 +244,39 @@ function off() {
 /***** Exports functions *****/
 
 function init() {
+
     emitter.on('hwReady', () => {
         hwReady = true;
         led.blink(1000);
         console.log("Johnny Five hardware initialized");
+
+        //todo: remove this
+        //newForward.move(1, 0.5, ()=>console.log("done"));
     });
 }
 
+function onReady(cb) {
+
+    if (cb)
+        emitter.on('hwReady', () => {
+            console.log("starting");
+            hwReady = true;
+            cb();
+        });
+    else
+        return new Promise((resolve) => {
+            emitter.on('hwReady', () => {
+                hwReady = true;
+                resolve();
+            });
+        });
+}
+
 exports.init = init;
+
+//todo: figure out why I always get a `this.on is not a function` when I try to export forward.move
+
 exports.forward = forward;
+exports.backward = backward;
 exports.shoot = shoot;
-exports.emitter = emitter;
+exports.onReady = onReady;
