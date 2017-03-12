@@ -43,105 +43,97 @@ board.on("ready", function () {
 
 /***** Motor controls *****/
 
+//todo: by moving everything into the constructor, did I just recreate an object here?
 class Command {
-    constructor(name, onFunc, offFunc){
-    this.name = name;
-    this.on = onFunc;
-    this.off = offFunc;
+    constructor(name, pins) {
+        this.name = name;
+        this.pins = pins;
 
-    return this;
-    }
+        //arrow functions below to pass `this` through each level
+        function move(t, speed, cb) {
 
-    //arrow functions below to pass `this` through each level
-    move(t, speed, cb){
-
-        if (arguments.length <3 && typeof speed == 'function'){
-            cb = speed;
-            speed = null;
-        }
-        //todo: test this
-        else
-            if (arguments.length ==1 && typeof t == 'function'){
+            if (arguments.length < 3 && typeof speed == 'function') {
+                cb = speed;
+                speed = null;
+            }
+            //todo= test this
+            else if (arguments.length == 1 && typeof t == 'function') {
                 cb = t;
                 t = null;
                 speed = null;
             }
 
-        //todo: fix my promise setup to return a reject here
-        if (hwReady == false)
-            return;
+            //todo= fix my promise setup to return a reject here
+            if (hwReady == false)
+                return;
 
-        if (isNaN(t)) t = 1;
+            if (isNaN(t)) t = 1;
 
-        let pulseDuration = 100; //how long to time each pulse in ms
-        let pulseOn = false;
-        let running = true;
+            let pulseDuration = 100; //how long to time each pulse in ms
+            let pulseOn = false;
+            let running = true;
 
-        let timer;
+            let timer;
 
-        let pulse = ()=> {
-            if (running == false)        //this might be redundant
-                return false;
+            let pulse = () => {
+                if (running == false)        //this might be redundant
+                    return false;
 
-            pulseOn = !pulseOn;
-            let duration = pulseOn == true ? Math.round(pulseDuration * speed) : Math.round(pulseDuration * (1 - speed));
-            let state = ()=> (pulseOn == true ? this.on() : this.off());
+                pulseOn = !pulseOn;
+                let duration = (pulseOn == true) ? Math.round(pulseDuration * speed) : Math.round(pulseDuration * (1 - speed));
+                let state = () => (pulseOn == true) ? setHigh() : setLow();
 
-            timer = setTimeout(() => {
-                state();
-                //console.log("I am " + (pulseOn == true ? "on" : "off" ) + " for " + duration);
-                pulse();
-            }, duration);
-        };
+                timer = setTimeout(() => {
+                    state();
+                    //console.log("I am " + (pulseOn == true ? "on" : "off" ) + " for " + duration);
+                    pulse();
+                }, duration);
+            };
 
-        console.log(this.name + (speed ? " at " + speed + " speed": "" ) + " for " + t + " seconds");
+            console.log(name + (speed ? " at " + speed + " speed" : "" ) + " for " + t + " seconds");
 
-        this.on();
+            setHigh();
+            //this.on();
 
-        if (speed)
-            if (!isNaN(speed))  //make sure it is a number
-                pulse();
+            if (speed)
+                if (!isNaN(speed))  //make sure it is a number
+                    pulse();
 
-        if (cb)
-            setTimeout( ()=> {
-                    running = false;
-                    clearTimeout(timer);
-                    this.off();
-                    cb();
-                }
-                , t * 1000);
-        else
-            return new Promise((resolve) => {
-                setTimeout( ()=> {
+            if (cb)
+                setTimeout(() => {
                         running = false;
                         clearTimeout(timer);
-                        this.off();
-                        resolve();
+                        setLow();
+                        cb();
                     }
                     , t * 1000);
-            });
-    }
+            else
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                            running = false;
+                            clearTimeout(timer);
+                            setLow();
+                            resolve();
+                        }
+                        , t * 1000);
+                });
+        }
 
+        this.move = move;
+
+
+        function setHigh() {
+            pins.forEach((pin) => pin.high())
+        }
+
+        function setLow() {
+            pins.forEach((pin) => pin.low())
+        }
+    }
 }
 
-let forward = new Command(
-    "forward",
-    function(){
-        rf.high();
-        lf.high();
-    },
-    function(){
-        rf.low();
-        lf.low();
-    });
-
-let backward = new Command("backward", ()=>{rb.high();lb.high();}, ()=>{lb.low(); rb.low()});
-let spinright = new Command("spinright", ()=>{lf.high();rb.high();}, ()=>{lf.low(); rb.low()});
-let spinleft = new Command("spinleft", ()=>{rf.high();lb.high();}, ()=>{rf.low(); lb.low()});
-
-
-//todo: prototype this and use to create other functions
-//todo: see why this doesn't seem to work below 50%
+//todo= prototype this and use to create other functions
+//todo= see why this doesn't seem to work below 50%
 function oldForward(t, speed, cb) {
     if (hwReady == false)
         return false;
@@ -165,12 +157,12 @@ function oldForward(t, speed, cb) {
             state ^= 0x01;
             rf.write(state);
             lf.write(state);
-            //console.log("I am " + (pulseOn == true ? "on" : "off" ) + " for " + duration + "ms");
+            //console.log("I am " + (pulseOn == true ? "on" = "off" ) + " for " + duration + "ms");
             pulse();
         }, duration);
     }
 
-    console.log("Forward: rf & lf" + (speed ? " at " + speed : "" ) + " for " + t + " seconds");
+    console.log("Forward= rf & lf" + (speed ? " at " + speed : "" ) + " for " + t + " seconds");
 
     rf.high();
     lf.high();
@@ -207,7 +199,7 @@ function oldBackward(t) {
         return;
 
     if (isNaN(t)) t = 1;
-    console.log("Backward: toggling rb & lb for " + t + " seconds");
+    console.log("Backward= toggling rb & lb for " + t + " seconds");
     rb.high();
     lb.high();
     setTimeout(function () {
@@ -250,22 +242,35 @@ function init() {
         led.blink(1000);
         console.log("Johnny Five hardware initialized");
 
-        //todo: remove this
-        //newForward.move(1, 0.5, ()=>console.log("done"));
+        //todo= figure out why I always get a `this.on is not a function` when I try to export forward.move
+
+        //let fw = new Command("forward", [lf, rf]);
+        //exports.forward = fw.prototype.move;
+        exports.forward = new Command("forward", [lf, rf]).move;
+        exports.backward = new Command("backward", [lb, rb]).move;
+        exports.spinright = new Command("spinright", [lf, rb]).move;
+        exports.spinleft = new Command("spinleft", [rf, lb]).move;
+        exports.rightfront = new Command("rf", [rf]).move;
+        exports.rightback = new Command("rb", [rb]).move;
+        exports.leftfront = new Command("lf", [lf]).move;
+        exports.leftback = new Command("lb", [lb]).move;
+
+        emitter.emit("configReady");
+
     });
 }
 
 function onReady(cb) {
 
     if (cb)
-        emitter.on('hwReady', () => {
+        emitter.on('configReady', () => {
             console.log("starting");
             hwReady = true;
             cb();
         });
     else
         return new Promise((resolve) => {
-            emitter.on('hwReady', () => {
+            emitter.on('configReady', () => {
                 hwReady = true;
                 resolve();
             });
@@ -273,10 +278,5 @@ function onReady(cb) {
 }
 
 exports.init = init;
-
-//todo: figure out why I always get a `this.on is not a function` when I try to export forward.move
-
-exports.forward = forward;
-exports.backward = backward;
 exports.shoot = shoot;
 exports.onReady = onReady;

@@ -3,7 +3,6 @@
  */
 
 const Readable = require('stream').Readable;
-const util = require('util');
 
 const nodeimu  = require('nodeimu');
 const IMU = new nodeimu.IMU();
