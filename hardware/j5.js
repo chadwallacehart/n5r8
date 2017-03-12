@@ -14,7 +14,6 @@ const board = new five.Board({
     io: new Raspi()
 });
 
-
 const EventEmitter = require('events');
 class MyEmitter extends EventEmitter {
 }
@@ -50,22 +49,27 @@ class Command {
         this.pins = pins;
 
         //arrow functions below to pass `this` through each level
-        function move(t, speed, cb) {
+        this.move = function move(t, speed, cb) {
 
+            //Allow optional arguments and always check for callback
             if (arguments.length < 3 && typeof speed == 'function') {
                 cb = speed;
                 speed = null;
             }
-            //todo= test this
             else if (arguments.length == 1 && typeof t == 'function') {
                 cb = t;
                 t = null;
                 speed = null;
             }
 
-            //todo= fix my promise setup to return a reject here
-            if (hwReady == false)
-                return;
+            //Cancel is hardware isn't ready
+            if (hwReady == false){
+                let err = "hardware not ready";
+                if (cb)
+                    return err;
+                else
+                    return new Promise( (reject)=> reject(err));
+            }
 
             if (isNaN(t)) t = 1;
 
@@ -93,7 +97,6 @@ class Command {
             console.log(name + (speed ? " at " + speed + " speed" : "" ) + " for " + t + " seconds");
 
             setHigh();
-            //this.on();
 
             if (speed)
                 if (!isNaN(speed))  //make sure it is a number
@@ -117,10 +120,7 @@ class Command {
                         }
                         , t * 1000);
                 });
-        }
-
-        this.move = move;
-
+        };
 
         function setHigh() {
             pins.forEach((pin) => pin.high())
@@ -240,12 +240,6 @@ function init() {
     emitter.on('hwReady', () => {
         hwReady = true;
         led.blink(1000);
-        console.log("Johnny Five hardware initialized");
-
-        //todo= figure out why I always get a `this.on is not a function` when I try to export forward.move
-
-        //let fw = new Command("forward", [lf, rf]);
-        //exports.forward = fw.prototype.move;
         exports.forward = new Command("forward", [lf, rf]).move;
         exports.backward = new Command("backward", [lb, rb]).move;
         exports.spinright = new Command("spinright", [lf, rb]).move;
@@ -255,6 +249,7 @@ function init() {
         exports.leftfront = new Command("lf", [lf]).move;
         exports.leftback = new Command("lb", [lb]).move;
 
+        console.log("Rover hardware initialized");
         emitter.emit("configReady");
 
     });

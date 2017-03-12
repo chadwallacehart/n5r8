@@ -58,10 +58,6 @@ function rangeAttack(countdown, distance) {
 }
 
 //rangeAttack(5, 140);
-//);
-//rover.emitter.on('hwReady', ()=> rover.forward(1, ()=> rover.slowForward(5, ()=> console.log("done"))));
-//rover.forward(5);
-//rover.emitter.on('hwReady',
 
 /*rover.onReady()
     .then(()=>rover.forward(1, (1/2))
@@ -71,13 +67,13 @@ function rangeAttack(countdown, distance) {
     .catch((e)=>console.error(e)));
 */
 
-
 rover.onReady()
     .then(()=>rover.forward(1, 0.5))
     .then(()=>rover.backward(1, 0.5))
     .then(()=>rover.spinright(1, 0.5))
     .then(()=>rover.spinleft(1, 0.5))
-    .then(()=>console.log("done"));
+    .then(()=>console.log("done"))
+    .catch((err)=>console.log(err));
 
 
-//rover.onReady(()=>rover.forward(2, ()=>console.log("done")));
+//rover.onReady(()=>rover.forward( ()=>console.log("done")));
