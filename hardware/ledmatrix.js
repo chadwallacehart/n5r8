@@ -62,7 +62,8 @@ exports.init = function () {
         })
         .then(function (result) {
             return setColor(color.black, 500)
-        });
+        })
+        .catch((e)=>console.log(e));
 
 };
 

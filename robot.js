@@ -1,9 +1,9 @@
 //Hardware dependencies
 const ledmatrix = require('./hardware/ledmatrix'),
     compass = require('./hardware/compass'),
-    range = require('./hardware/range');
-
-let rover = require('./hardware/j5');
+    range = require('./hardware/range'),
+    rover = require('./hardware/j5'),
+    www = require('./www/app.js');
 
 //require('./control/actions.js');
 
@@ -59,21 +59,26 @@ function rangeAttack(countdown, distance) {
 
 //rangeAttack(5, 140);
 
-/*rover.onReady()
-    .then(()=>rover.forward(1, (1/2))
-    .then(()=>rover.forward(1, (2/3))
-    .then(()=>rover.forward(1))
-    .then(()=>console.log("done")))
-    .catch((e)=>console.error(e)));
-*/
 
-rover.onReady()
+/*rover.onReady()
     .then(()=>rover.forward(1, 0.5))
     .then(()=>rover.backward(1, 0.5))
     .then(()=>rover.spinright(1, 0.5))
     .then(()=>rover.spinleft(1, 0.5))
     .then(()=>console.log("done"))
     .catch((err)=>console.log(err));
+*/
 
+function controllerTest(){
+    console.log("Calling start");
+    rover.rf.start(0.5);
+    setTimeout(function(){
+        console.log("calling stop");
+        rover.rf.stop()
+    }, 5000);
+}
 
+rover.onReady()
+    //.then(controllerTest);
+    .then(()=>console.log("loaded"));
 //rover.onReady(()=>rover.forward( ()=>console.log("done")));

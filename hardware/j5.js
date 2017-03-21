@@ -19,7 +19,7 @@ class MyEmitter extends EventEmitter {
 }
 const emitter = new MyEmitter();
 
-let led, rf, rb, lf, lb, sound, disc;
+let led, rf, rb, lf, lb, disc;
 let hwReady = false;
 
 board.on("ready", function () {
@@ -42,14 +42,14 @@ board.on("ready", function () {
 
 /***** Motor controls *****/
 
-//todo: by moving everything into the constructor, did I just recreate an object here?
+//todo: by moving everything into the constructor, did I just kill the advantages of a class here?
 class Command {
     constructor(name, pins) {
         this.name = name;
         this.pins = pins;
 
         //arrow functions below to pass `this` through each level
-        this.move = function move(t, speed, cb) {
+        this.start = function start(t, speed, cb) {
 
             //Allow optional arguments and always check for callback
             if (arguments.length < 3 && typeof speed == 'function') {
@@ -63,12 +63,12 @@ class Command {
             }
 
             //Cancel is hardware isn't ready
-            if (hwReady == false){
+            if (hwReady == false) {
                 let err = "hardware not ready";
                 if (cb)
                     return err;
                 else
-                    return new Promise( (reject)=> reject(err));
+                    return new Promise((reject) => reject(err));
             }
 
             if (isNaN(t)) t = 1;
@@ -80,7 +80,7 @@ class Command {
             let timer;
 
             let pulse = () => {
-                if (running == false)        //this might be redundant
+                if (running == false)        //todo: remove this?
                     return false;
 
                 pulseOn = !pulseOn;
@@ -132,7 +132,61 @@ class Command {
     }
 }
 
-//todo= prototype this and use to create other functions
+
+class Controller {
+    constructor(name, pins) {
+        this._name = name;
+        this._pins = pins;
+        this._running = false;
+    }
+
+    start(speed) {
+        if (this._running == true)
+            return;
+
+        console.log(this._name + " starting");
+
+        let pulseDuration = 100; //how long to time each pulse in ms
+        let pulseOn = false;
+
+        let pulse = () => {
+
+            pulseOn = !pulseOn;
+            let duration = (pulseOn == true) ? Math.round(pulseDuration * speed) : Math.round(pulseDuration * (1 - speed));
+            let state = () => (pulseOn == true) ? this._setHigh() : this._setLow();
+
+             this._timer = setTimeout(() => {
+                state();
+                //console.log(this._name + " pulse " + (pulseOn == true ? "on" : "off" ) + " for " + duration);
+                pulse();
+            }, duration);
+        };
+
+        this._setHigh();
+
+        if (!isNaN(speed))  //make sure it is a number
+            pulse();
+
+    }
+
+    stop(){
+        console.log(this._name + " stopping");
+        this._running = false;
+        clearTimeout(this._timer);
+        this._setLow();
+    }
+
+    _setHigh() {
+        this._pins.forEach((pin) => pin.high())
+    }
+
+    _setLow() {
+        this._pins.forEach((pin) => pin.low())
+    }
+
+}
+
+
 //todo= see why this doesn't seem to work below 50%
 function oldForward(t, speed, cb) {
     if (hwReady == false)
@@ -240,14 +294,22 @@ function init() {
     emitter.on('hwReady', () => {
         hwReady = true;
         led.blink(1000);
-        exports.forward = new Command("forward", [lf, rf]).move;
-        exports.backward = new Command("backward", [lb, rb]).move;
-        exports.spinright = new Command("spinright", [lf, rb]).move;
-        exports.spinleft = new Command("spinleft", [rf, lb]).move;
-        exports.rightfront = new Command("rf", [rf]).move;
-        exports.rightback = new Command("rb", [rb]).move;
-        exports.leftfront = new Command("lf", [lf]).move;
-        exports.leftback = new Command("lb", [lb]).move;
+        exports.forward = new Command("forward", [lf, rf]).start;
+        exports.backward = new Command("backward", [lb, rb]).start;
+        exports.spinright = new Command("spinright", [lf, rb]).start;
+        exports.spinleft = new Command("spinleft", [rf, lb]).start;
+        exports.shoot = new Command("shoot", [disc]).start;
+        exports.rightfront = new Command("rf", [rf]).start;
+        exports.rightback = new Command("rb", [rb]).start;
+        exports.leftfront = new Command("lf", [lf]).start;
+        exports.leftback = new Command("lb", [lb]).start;
+        exports.off = off;
+
+        exports.rf = new Controller("rf", [rf]);
+        exports.rb = new Controller("rb", [rb]);
+        exports.lf = new Controller("lf", [lf]);
+        exports.lb = new Controller("lb", [lb]);
+        exports.disc = new Controller("disc", [disc]);
 
         console.log("Rover hardware initialized");
         emitter.emit("configReady");

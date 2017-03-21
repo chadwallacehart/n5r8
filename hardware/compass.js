@@ -71,7 +71,7 @@ function fixHeading(err, heading) {
 let compass = new Compass;
 
 compass.interval = 500;
-compass.changeThreshold = 1.1;
+compass.changeThreshold = 1.9;
 compass.init = function(){
     getHeading(function(err, heading) {
         if (err)
