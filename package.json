@@ -10,11 +10,14 @@
   "license": "MIT",
   "dependencies": {
     "barcli": "0.0.23",
-    "express": "^4.14.0",
+    "express": "^4.15.2",
+    "http": "0.0.0",
     "johnny-five": "^0.10.6",
+    "mmm-usonic": "^2.5.3",
     "nodeimu": "^2.1.9",
     "promise": "^7.1.1",
     "raspi-io": "^7.2.4",
-    "sense-hat-led": "^1.0.0"
+    "sense-hat-led": "^1.0.0",
+    "socket.io": "^1.7.3"
   }
 }

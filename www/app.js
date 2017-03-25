@@ -3,8 +3,12 @@ const express = require('express'),
     server = require('http').createServer(app),
     io = require('socket.io')(server);
 
-const roverControl = require('../control/actions.js').commandParser;
+const roverControl = require('../control/comandParser.js');
+const gameControl = require('../control/gameControl.js');
 
+//ToDo: move this into a module with debouncing?
+const compass = require('../hardware/compass'),
+    range = require('../hardware/range');
 
 // Routing
 app.use(express.static(__dirname + '/public'));
@@ -65,6 +69,15 @@ app
             parseCommand(commands[index]);
         }
     })
+
+    .get('/sensors', function (req, res, next) {
+        res.sendFile(__dirname + '/public/html/sensors.html');
+    })
+
+    .get('/gamepad', function (req, res, next) {
+        res.sendFile(__dirname + '/public/html/gamepad.html');
+    })
+
 ;
 
 //ToDo: setup environment vars
@@ -72,4 +85,23 @@ const port = process.env.PORT || 2368;
 
 server.listen(port, function () {
     console.log('Server listening at port %d', port);
+});
+
+
+//p2p-socket.io tests
+io.on('connection', function (socket) {
+
+    console.log("socket connected");
+    socket.emit('init', {data: 'Hello socket'});
+
+    socket.on('touchui', function (data){
+        //console.log(data);
+        gameControl(data);
+    });
+
+    compass.on('data', (heading)=> {
+        socket.emit('sensor', {type: "compass", heading: heading})});
+
+    range.on('data', (data)=> {
+        socket.emit('sensor', {type: "range", location: data.location, distance: data.distance})});
 });

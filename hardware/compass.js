@@ -68,7 +68,8 @@ function fixHeading(err, heading) {
     }
 }
 
-let compass = new Compass;
+//ToDo: Consider how this impacts stream piping
+let compass = new Compass({objectMode: true});
 
 compass.interval = 500;
 compass.changeThreshold = 1.9;

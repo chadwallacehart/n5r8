@@ -5,7 +5,7 @@ const ledmatrix = require('./hardware/ledmatrix'),
     rover = require('./hardware/j5'),
     www = require('./www/app.js');
 
-//require('./control/actions.js');
+//require('./control/comandParser.js');
 
 //todo: is there a reason to not just initialize on load for these?
 //Hardware init

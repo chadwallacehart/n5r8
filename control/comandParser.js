@@ -40,4 +40,4 @@ function commandParser(input){
 
 }
 
-exports.commandParser = commandParser;
+module.exports = commandParser;

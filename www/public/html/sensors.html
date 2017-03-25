@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sensor Output</title>
+
+    <style type="text/css">
+        table {
+            border-collapse: collapse;
+
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+    </style>
+
+    <script src="../js/socket.io.js"></script>
+</head>
+<body>
+<table>
+
+    <tr>
+        <th>Sensor</th>
+        <th>Data</th>
+    </tr>
+    <tr>
+        <td>Compass</td>
+        <td id="data-compass"></td>
+    </tr>
+    <tr>
+        <td>Range Front-Left</td>
+        <td id="data-rangeFl"></td>
+    </tr>
+    <tr>
+        <td>Range Front-Right</td>
+        <td id="data-rangeFr"></td>
+    </tr>
+</table>
+
+<script>
+    let compassData = document.getElementById("data-compass");
+    let rangeFrData = document.getElementById("data-rangeFr");
+    let rangeFlData = document.getElementById("data-rangeFl");
+
+    let socket = io();
+    socket.on('init', (data) => {
+        console.log(data);
+    });
+
+    socket.on('sensor', (data) => {
+        //console.log(data);
+        if (data.type == "compass")
+            compassData.innerHTML = data.heading;
+        if (data.type == "range") {
+
+            if (data.location == "frontRight")
+                rangeFrData.innerHTML = data.distance;
+            if (data.location == "frontLeft")
+                rangeFlData.innerHTML = data.distance;
+        }
+    });
+
+</script>
+</body>
+</html>

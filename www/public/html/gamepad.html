@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang=en>
+<head>
+    <meta charset=utf-8>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0" />
+    <title>n4r8 gamepad controller</title>
+    <style type="text/css">
+
+        * {
+            -webkit-touch-callout: none; /* prevent callout to copy image, etc when tap to hold */
+            -webkit-text-size-adjust: none; /* prevent webkit from resizing text to fit */
+            /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            -webkit-user-select: none; /* prevent copy paste, to allow, change 'none' to 'text' */
+        }
+
+        body {
+            background-color: #000000;
+            margin: 0px;
+        }
+        canvas {
+            display:block;
+            position:absolute;
+        }
+        .container {
+            width:auto;
+            text-align:center;
+            background-color:#ff0000;
+        }
+
+        table {
+            border-collapse: collapse;
+            bottom:0;
+            margin-left: auto;
+            margin-right: auto;
+
+        }
+
+        th{
+            text-align: left;
+        }
+        table, th, td {
+            /*border: 1px solid white;*/
+            color: white;
+        }
+
+    </style>
+
+    <!--TODO: fix this reference to `/socket.io/socket.io.js` so it is auto-updated with socket.io on node -->
+    <script src="../js/socket.io.js"></script>
+    <script src="../js/Vector2.js"></script>
+    <script src="../js/touch.js"></script>
+    <script src="../js/gamepad.js"></script>
+</head>
+<body onload = "init()">
+
+
+<table>
+
+    <tr>
+        <th>Sensor</th>
+        <th>Data</th>
+    </tr>
+    <tr>
+        <td>Compass</td>
+        <td id="data-compass"></td>
+    </tr>
+    <tr>
+        <td>Range Front-Left</td>
+        <td id="data-rangeFl"></td>
+    </tr>
+    <tr>
+        <td>Range Front-Right</td>
+        <td id="data-rangeFr"></td>
+    </tr>
+</table>
+
+<script>
+
+</script>
+</body>
+</html>
