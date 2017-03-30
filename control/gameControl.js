@@ -105,7 +105,6 @@ function gameControlOld(command) {
             break;
         default:
             console.log("unrecognized control message: " + command.control);
-
     }
 }
 
@@ -142,6 +141,12 @@ function gameControl(command) {
             break;
         case 'lbOff':
             rover.lb.stop();
+            break;
+        case 'shootOn':
+            rover.disc.start();
+            break;
+        case 'shootOff':
+            rover.disc.stop();
             break;
         case 'heartbeat':
             console.log('heartbeat');

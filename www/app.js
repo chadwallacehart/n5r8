@@ -99,6 +99,11 @@ io.on('connection', function (socket) {
         gameControl(data);
     });
 
+    socket.on('webrtc', function (data){
+        //console.log(data);
+
+    });
+
     compass.on('data', (heading)=> {
         socket.emit('sensor', {type: "compass", heading: heading})});
 

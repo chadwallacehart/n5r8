@@ -23,7 +23,8 @@ function touch() {
     let canvas,
         c, // c is the canvas' context 2D
         container,
-        halfWidth,
+        //halfWidth,
+        thirdWidth,
         halfHeight,
         leftTouchID = -1,
         leftTouchPos = new Vector2(0, 0),
@@ -33,7 +34,9 @@ function touch() {
         rightTouchID = -1,
         rightTouchPos = new Vector2(0, 0),
         rightTouchStartPos = new Vector2(0, 0),
-        rightVector = new Vector2(0, 0);
+        rightVector = new Vector2(0, 0),
+
+        shootTouchID = -1;
 
     setupCanvas();
 
@@ -44,7 +47,8 @@ function touch() {
 
     let message = {
         left: "left message",
-        right: "right message"
+        right: "right message",
+        shoot: "shoot message"
     };
 
     setInterval(draw, 1000 / 35);
@@ -66,6 +70,7 @@ function touch() {
         canvas.height = window.innerHeight;
 
         halfWidth = canvas.width / 2;
+        thirdWidth = canvas.width / 3;
         halfHeight = canvas.height / 2;
 
         //make sure we scroll to the top left.
@@ -82,10 +87,22 @@ function touch() {
 
         c.beginPath();
         c.textAlign = "end";
-        c.fillText(message.left, halfWidth - 10, halfHeight);
+        c.fillText(message.left, thirdWidth - 10, halfHeight);
+
         c.beginPath();
         c.textAlign = "start";
-        c.fillText(message.right, halfWidth + 10, halfHeight);
+        c.fillText(message.right, (thirdWidth * 2)  + 10, halfHeight);
+
+        c.beginPath();
+        c.textAlign = "center"; //(c.measureText(message.shoot)/2)
+        c.fillText(message.shoot, halfWidth, halfHeight);
+
+        //draw a circle in the center
+        c.strokeStyle = "DarkGray";
+        c.lineWidth=2;
+        c.beginPath();
+        c.arc(canvas.width/2, canvas.height/2, (thirdWidth*.6)/2, 0, 2*Math.PI);
+        c.stroke();
 
 
         if (touchable) {
@@ -178,7 +195,7 @@ function touch() {
             var touch = e.changedTouches[i];
             //console.log(leftTouchID + " "
 
-            if ((leftTouchID < 0) && (touch.clientX < halfWidth)) {
+            if ((leftTouchID < 0) && (touch.clientX < thirdWidth)) {
                 leftTouchID = touch.identifier;
                 leftTouchStartPos.reset(touch.clientX, touch.clientY);
                 leftTouchPos.copyFrom(leftTouchStartPos);
@@ -187,15 +204,18 @@ function touch() {
 
 
             }
-            else if ((rightTouchID < 0) && (touch.clientX > halfWidth)) {
+            else if ((rightTouchID < 0) && (touch.clientX > thirdWidth*2)) {
                 rightTouchID = touch.identifier;
                 rightTouchStartPos.reset(touch.clientX, touch.clientY);
                 rightTouchPos.copyFrom(leftTouchStartPos);
                 rightVector.reset(0, 0);
                 //continue;
             }
-            else {
-
+            else if ((leftTouchID < 0) && touch.clientX > thirdWidth && touch.clientX < thirdWidth*2) {
+                shootTouchID = touch.identifier;
+                message.shoot = "shooting!";
+                socket.emit('touchui', {'control': 'shootOn'});
+                //ToDo: add a shootTouchID and detect if it has been listed
 
             }
         }
@@ -212,14 +232,7 @@ function touch() {
             var touch = e.changedTouches[i];
 
             if (leftTouchID == touch.identifier) {
-                /*			var displacement = (leftTouchStartPos.y - touch.clientY)/ halfHeight;
-                 console.log("Displacement: " + displacement);
 
-                 if ( math.abs(displacement) < 0.10){
-                 message.left = "hold";
-                 }
-                 else {
-                 */
                 if (leftTouchStartPos.y - touch.clientY > 0) {
                     message.left = "forward";
                     console.log("left forward");
@@ -238,14 +251,7 @@ function touch() {
             }
 
             if (rightTouchID == touch.identifier) {
-                /*			var displacement = (leftTouchStartPos.y - touch.clientY)/ halfHeight;
-                 console.log("Displacement: " + displacement);
 
-                 if (math.abs(displacement) < 0.10){
-                 message.right = "hold";
-                 }
-                 else{
-                 */
                 if (rightTouchStartPos.y - touch.clientY > 0) {
                     message.right = "forward";
                     console.log("right forward");
@@ -295,6 +301,15 @@ function touch() {
                 socket.emit('touchui', {'control': 'rbOff'});
                 //break;
             }
+
+            if (shootTouchID == touch.identifier) {
+                shootTouchID = -1;
+                message.shoot = "off";
+                console.log("shooting off");
+                socket.emit('touchui', {'control': 'shootOff'});
+                //break;
+            }
+
         }
 
     }
@@ -317,6 +332,8 @@ function touch() {
         canvas.height = window.innerHeight;
         document.body.appendChild(container);
         container.appendChild(canvas);
+
+        //canvas.requestFullscreen();
 
         resetCanvas();
 
