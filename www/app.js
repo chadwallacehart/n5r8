@@ -5,10 +5,16 @@ const express = require('express'),
 
 const roverControl = require('../control/comandParser.js');
 const gameControl = require('../control/gameControl.js');
+const spawn = require('child_process').spawn;
+
 
 //ToDo: move this into a module with debouncing?
 const compass = require('../hardware/compass'),
     range = require('../hardware/range');
+
+console.log("process dir:" + process.cwd());
+
+let webrtcRunning = false;
 
 // Routing
 app.use(express.static(__dirname + '/public'));
@@ -78,6 +84,59 @@ app
         res.sendFile(__dirname + '/public/html/gamepad.html');
     })
 
+    .get('/webrtc', function (req, res, next) {
+        if(webrtcRunning == true){
+            res.sendFile(__dirname + '/public/html/webrtc-receiver.html');
+            return;
+        }
+
+
+        //Otherwise run the script to start chromium-browser
+        const webrtcSh = spawn('sh', [ 'webrtc.sh' ], {
+            //cwd: process.cwd(),
+            env: Object.assign({}, process.env, { PATH: process.env.PATH + ':/usr/local/bin' })
+        });
+
+        //Give chromium time to load
+        //ToDo: handle this in the client in case webrtc already running?
+        setTimeout(()=>{
+            res.sendFile(__dirname + '/public/html/webrtc-receiver.html');
+        }, 500);
+
+        webrtcSh.stdout.on('data', (data) => {
+            console.log(`chromium-browser: ${data}`);
+            webrtcRunning = true;
+        });
+
+        webrtcSh.stderr.on('data', (data) => {
+            console.log(`chromium-browser: ${data}`);
+            //res.end('Error starting WebRTC Script ' + data);
+        });
+
+        webrtcSh.on('close', (code) => {
+            webrtcRunning = false;
+            console.log(`child process exited with code ${code}`);
+        });
+
+        webrtcSh.on('error', (error) => {
+            webrtcRunning = false;
+            console.log(`Error launching chromium-browser: ` + error);
+            res.end('Error starting WebRTC Script ' + error);
+        });
+        
+        
+    })
+
+
+    .get('/webrtc-send', function (req, res, next) {
+        res.sendFile(__dirname + '/public/html/webrtc-sender.html');
+    })
+
+    .get('/webrtc-view', function (req, res, next) {
+        res.sendFile(__dirname + '/public/html/webrtc-receiver.html');
+    })
+
+
 ;
 
 //ToDo: setup environment vars
@@ -88,7 +147,9 @@ server.listen(port, function () {
 });
 
 
-//p2p-socket.io tests
+let senderReady = false;
+let receiverReady = false;
+
 io.on('connection', function (socket) {
 
     console.log("socket connected");
@@ -99,11 +160,74 @@ io.on('connection', function (socket) {
         gameControl(data);
     });
 
-    socket.on('webrtc', function (data){
-        //console.log(data);
 
+    socket.on('webrtc', function (message){
+        console.log(socket.id + ' said: ', message);
+
+        if(message == "sender-ready"){
+            senderReady = true;
+
+            if(receiverReady==true){
+                console.log("Starting WebRTC call");
+                socket.emit('webrtc', 'startCall');
+            }
+            else
+                console.log("Receiver not ready for WebRTC call");
+
+        }
+        else if(message == "receiver-ready"){
+            console.log("WebRTC receiver ready");
+            receiverReady = true;
+
+            if (senderReady == true) {
+                console.log("Starting WebRTC call");
+                socket.broadcast.emit('webrtc', 'startCall');
+            }
+            else
+                console.log("Sender not ready for WebRTC call");
+
+        }
+        else if(message == "receiver-off"){
+            console.log("WebRTC receiver off");
+            receiverReady = false;
+        }
+        else if(message == "sender-off"){
+            console.log("WebRTC sender off");
+            senderReady = false;
+        }
+        else
+            socket.broadcast.emit('webrtc', message);
     });
 
+
+
+    //ToDo: remove this below
+    /*
+    socket.on('create or join', function(room) {
+        console.log('Received request to create or join room ' + room);
+
+        //ToDo: look into why this didn't work
+        //let numClients = io.sockets.sockets.length;
+        let numClients = Object.keys(io.sockets.sockets).length;
+        console.log('Room ' + room + ' now has ' + numClients + ' client(s)');
+
+        if (numClients === 1) {
+            socket.join(room);
+            console.log('Client ID ' + socket.id + ' created room ' + room);
+            socket.emit('created', room, socket.id);
+        } else if (numClients === 2) {
+            console.log('Client ID ' + socket.id + ' joined room ' + room);
+            // io.sockets.in(room).emit('join', room);
+            socket.join(room);
+            socket.emit('joined', room, socket.id);
+            io.sockets.in(room).emit('ready', room);
+            socket.broadcast.emit('ready', room);
+        } else { // max two clients
+            socket.emit('full', room);
+        }
+    });
+
+*/
     compass.on('data', (heading)=> {
         socket.emit('sensor', {type: "compass", heading: heading})});
 
