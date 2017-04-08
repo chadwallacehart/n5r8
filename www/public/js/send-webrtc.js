@@ -4,8 +4,7 @@
 
 'use strict';
 
-const socket = io.connect();
-
+const socket = io(); //.connect();
 
 //////////////////////////
 /*** Get local media ***/
@@ -15,30 +14,31 @@ const localVideo = document.querySelector('#localVideo');
 let guMconstraints = {
     audio: true,
     video: {
-        width: {ideal: 1280},    //new syntax
-        height: {ideal: 720}   //new syntax
+        width: {ideal: 640},    //new syntax
+        height: {ideal: 360}   //new syntax
     }
 };
-    navigator.mediaDevices.getUserMedia(guMconstraints)
-        .then(gotStream)
-        .catch(function (e) {
-            console.error('getUserMedia() error: ' + e.name);
-        });
 
-    function gotStream(stream) {
-        let videoTracks = stream.getVideoTracks();
-        console.log('Using video device: ' + videoTracks[0].label);
-        let audioTracks = stream.getAudioTracks();
-        console.log('Using audio device: ' + audioTracks[0].label);
+navigator.mediaDevices.getUserMedia(guMconstraints)
+    .then(gotStream)
+    .catch(function (e) {
+        console.error('getUserMedia() error: ' + e.name);
+    });
 
-        stream.oninactive = function() {
-            console.log('Stream inactive');
-        };
-        //localVideo.src = window.URL.createObjectURL(stream); //Deprecated
-        localVideo.srcObject = stream;
-        socket.emit('webrtc', 'sender-ready');
-        videoReady = true;
-    }
+function gotStream(stream) {
+    let videoTracks = stream.getVideoTracks();
+    console.log('Using video device: ' + videoTracks[0].label);
+    let audioTracks = stream.getAudioTracks();
+    console.log('Using audio device: ' + audioTracks[0].label);
+
+    stream.oninactive = function () {
+        console.log('Stream inactive');
+    };
+    //localVideo.src = window.URL.createObjectURL(stream); //Deprecated
+    localVideo.srcObject = stream;
+    socket.emit('webrtc', 'sender-ready');
+    videoReady = true;
+}
 
 //////////////////////////
 /*** Peer Connection ***/
@@ -50,9 +50,9 @@ const pcConfig = {
 };
 
 //Routing backed on the message content
-socket.on('webrtc', (message)=>{
+socket.on('webrtc', (message) => {
     console.log("Webrtc message: " + JSON.stringify(message));
-    if (message ==='startCall' )
+    if (message === 'startCall')
         startCall();
     else if (message.type === 'candidate') {
         let candidate = new RTCIceCandidate({
@@ -64,13 +64,13 @@ socket.on('webrtc', (message)=>{
     else if (message.type === 'offer') {
         pc.setRemoteDescription(new RTCSessionDescription(message))
             .then(() => console.log("setRemoteDescription complete"),
-                (err)=>console.error("Failed to setRemoteDescription: " + err));
+                (err) => console.error("Failed to setRemoteDescription: " + err));
 
         pc.createAnswer().then(
             (desc) => {
                 pc.setLocalDescription(desc)
-                    .then(()=>console.log("setLocalDescription complete"),
-                        (err)=>console.error("setLocalDesription error:" + err));
+                    .then(() => console.log("setLocalDescription complete"),
+                        (err) => console.error("setLocalDesription error:" + err));
                 socket.emit('webrtc', desc);
                 console.log("Sending local SDP: " + JSON.stringify(desc));
             },
@@ -83,7 +83,7 @@ socket.on('webrtc', (message)=>{
 });
 
 
-function startCall(){
+function startCall() {
 
     //Setup our peerConnection object
     try {

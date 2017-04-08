@@ -5,7 +5,7 @@ const express = require('express'),
 
 const roverControl = require('../control/comandParser.js');
 const gameControl = require('../control/gameControl.js');
-const spawn = require('child_process').spawn;
+const loadWebRTC = require('../control/chromiumWebrtc.js');
 
 
 //ToDo: move this into a module with debouncing?
@@ -40,7 +40,6 @@ app
             res.send("n4r8 rest interface")
         }
         else{
-            let output = [];
             let commands = req.params.commands.toLowerCase().split(';');
 
             res.setHeader('Content-Type', 'text/html');
@@ -81,57 +80,26 @@ app
     })
 
     .get('/gamepad', function (req, res, next) {
+        if(webrtcRunning === false){
+            loadWebRTC();
+        }
         res.sendFile(__dirname + '/public/html/gamepad.html');
     })
 
+    //Load Chromium to send the WebRTC stream and view it
     .get('/webrtc', function (req, res, next) {
-        if(webrtcRunning == true){
-            res.sendFile(__dirname + '/public/html/webrtc-receiver.html');
-            return;
+        if(webrtcRunning === false){
+            loadWebRTC();
         }
-
-
-        //Otherwise run the script to start chromium-browser
-        const webrtcSh = spawn('sh', [ 'webrtc.sh' ], {
-            //cwd: process.cwd(),
-            env: Object.assign({}, process.env, { PATH: process.env.PATH + ':/usr/local/bin' })
-        });
-
-        //Give chromium time to load
-        //ToDo: handle this in the client in case webrtc already running?
-        setTimeout(()=>{
-            res.sendFile(__dirname + '/public/html/webrtc-receiver.html');
-        }, 500);
-
-        webrtcSh.stdout.on('data', (data) => {
-            console.log(`chromium-browser: ${data}`);
-            webrtcRunning = true;
-        });
-
-        webrtcSh.stderr.on('data', (data) => {
-            console.log(`chromium-browser: ${data}`);
-            //res.end('Error starting WebRTC Script ' + data);
-        });
-
-        webrtcSh.on('close', (code) => {
-            webrtcRunning = false;
-            console.log(`child process exited with code ${code}`);
-        });
-
-        webrtcSh.on('error', (error) => {
-            webrtcRunning = false;
-            console.log(`Error launching chromium-browser: ` + error);
-            res.end('Error starting WebRTC Script ' + error);
-        });
-        
-        
+        res.sendFile(__dirname + '/public/html/webrtc-receiver.html');
     })
 
-
+    //Send a WebRTC stream
     .get('/webrtc-send', function (req, res, next) {
         res.sendFile(__dirname + '/public/html/webrtc-sender.html');
     })
 
+    //view the WebRTC stream
     .get('/webrtc-view', function (req, res, next) {
         res.sendFile(__dirname + '/public/html/webrtc-receiver.html');
     })
@@ -164,10 +132,11 @@ io.on('connection', function (socket) {
     socket.on('webrtc', function (message){
         console.log(socket.id + ' said: ', message);
 
-        if(message == "sender-ready"){
+        //todo: only allow one sender
+        if(message === "sender-ready"){
             senderReady = true;
 
-            if(receiverReady==true){
+            if(receiverReady===true){
                 console.log("Starting WebRTC call");
                 socket.emit('webrtc', 'startCall');
             }
@@ -175,11 +144,11 @@ io.on('connection', function (socket) {
                 console.log("Receiver not ready for WebRTC call");
 
         }
-        else if(message == "receiver-ready"){
+        else if(message === "receiver-ready"){
             console.log("WebRTC receiver ready");
             receiverReady = true;
 
-            if (senderReady == true) {
+            if (senderReady === true) {
                 console.log("Starting WebRTC call");
                 socket.broadcast.emit('webrtc', 'startCall');
             }
@@ -187,11 +156,11 @@ io.on('connection', function (socket) {
                 console.log("Sender not ready for WebRTC call");
 
         }
-        else if(message == "receiver-off"){
+        else if(message === "receiver-off"){
             console.log("WebRTC receiver off");
             receiverReady = false;
         }
-        else if(message == "sender-off"){
+        else if(message === "sender-off"){
             console.log("WebRTC sender off");
             senderReady = false;
         }

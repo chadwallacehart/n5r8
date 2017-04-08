@@ -4,25 +4,8 @@
 
 'use strict';
 
-const remoteVideo = document.querySelector('#remoteVideo');
-
-const socket = io.connect();
-socket.emit('webrtc', 'receiver-ready');
-
-//////////////////////////
-/*** video handling ***/
-
-remoteVideo.addEventListener('loadedmetadata', function() {
-    console.log('Remote video videoWidth: ' + this.videoWidth +
-        'px,  videoHeight: ' + this.videoHeight + 'px');
-});
-
-
-remoteVideo.onresize = function() {
-    console.log('Remote video size changed to ' +
-        remoteVideo.videoWidth + 'x' + remoteVideo.videoHeight);
-};
-
+const socket= io(); //.connect();
+let webrtcActive = false;
 
 //////////////////////////
 /*** Peer Connection ***/
@@ -36,6 +19,8 @@ const pcConfig = {
 
 //Routing backed on the message content
 socket.on('webrtc', (message) => {
+    webrtcActive = true;
+
     if (message.type === 'candidate') {
         let candidate = new RTCIceCandidate({
             sdpMLineIndex: message.label,
@@ -92,6 +77,36 @@ pc.onaddstream = (event) => {
 pc.onremovestream = (event) => console.log('Remote stream removed. Event: ', event);
 
 console.log('Created RTCPeerConnnection');
+
+//////////////////////////
+/*** video handling ***/
+
+window.onload = () => {
+
+    const remoteVideo = document.querySelector('#remoteVideo');
+
+    remoteVideo.addEventListener('loadedmetadata', function() {
+        console.log('Remote video videoWidth: ' + this.videoWidth +
+            'px,  videoHeight: ' + this.videoHeight + 'px');
+    });
+
+
+    remoteVideo.onresize = function() {
+        console.log('Remote video size changed to ' +
+            remoteVideo.videoWidth + 'x' + remoteVideo.videoHeight);
+    };
+
+    socket.emit('webrtc', 'receiver-ready');
+
+    //Try to connect again if sender is not ready
+    setTimeout(()=>{
+        if(webrtcActive === false)
+            socket.emit('webrtc', 'receiver-ready');
+    }, 500);
+
+};
+
+
 
 //shutdown the peerConnection when the page is closed
 window.onbeforeunload = () => {
