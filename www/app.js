@@ -7,12 +7,15 @@ const roverControl = require('../control/comandParser.js');
 const gameControl = require('../control/gameControl.js');
 const loadWebRTC = require('../control/chromiumWebrtc.js');
 
+let config = {preload: true};
+const talk = require('/home/pi/dev/r2d2talk')(config);
+
 
 //ToDo: move this into a module with debouncing?
 const compass = require('../hardware/compass'),
     range = require('../hardware/range');
 
-console.log("process dir:" + process.cwd());
+//console.log("process dir:" + process.cwd());
 
 let webrtcRunning = false;
 
@@ -37,7 +40,7 @@ app
     .get('/rest/:commands', (req, res)=>{
 
         if (!req.params.commands){
-            res.send("n4r8 rest interface")
+            res.send("n5r8 rest interface")     //todo: this isn't working
         }
         else{
             let commands = req.params.commands.toLowerCase().split(';');
@@ -104,7 +107,16 @@ app
         res.sendFile(__dirname + '/public/html/webrtc-receiver.html');
     })
 
+    //Say stuff
+    .get('/talk/:words', (req, res, next)=> {
+        let words = req.params.words;
 
+        if(!req.params.words)
+            words = "you need to enter something";
+
+        talk(words);
+        res.send("saying: " + words);
+    })
 ;
 
 //ToDo: setup environment vars

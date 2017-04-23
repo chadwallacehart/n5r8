@@ -4,7 +4,8 @@
   "description": "robotics project",
   "main": "robot.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "sudo ../bin/nodemon --debug=5858 robot.js"
   },
   "author": "Chad Hart",
   "license": "MIT",
@@ -15,7 +16,6 @@
     "johnny-five": "^0.10.6",
     "mmm-usonic": "^2.5.3",
     "nodeimu": "^2.1.9",
-    "promise": "^7.1.1",
     "raspi-io": "^7.2.4",
     "sense-hat-led": "^1.0.0",
     "socket.io": "^1.7.3"

@@ -5,6 +5,8 @@ const ledmatrix = require('./hardware/ledmatrix'),
     rover = require('./hardware/j5'),
     www = require('./www/app.js');
 
+const r2 = require('/home/pi/dev/r2d2talk')();
+
 //require('./control/comandParser.js');
 
 //todo: is there a reason to not just initialize on load for these?
@@ -14,6 +16,11 @@ compass.init();
 range.init();
 rover.init();
 
+const talk = r2.talk;
+r2.load()
+    .then(()=>{
+        talk("hello")})
+    .catch((err)=>console.log("r2d2talk error: " + err));
 compass.on('data', (heading) => console.log('heading: ' + heading));
 
 function rangeAttack(countdown, distance) {
