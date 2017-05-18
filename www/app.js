@@ -37,6 +37,9 @@ app
 
     //curl "http://192.168.100.29:2368/rest/forward-5-0.5;backward-1;spinright-2-0.66"
 
+    .get('/rest', (reg, res)=>{
+
+    })
     .get('/rest/:commands', (req, res)=>{
 
         if (!req.params.commands){

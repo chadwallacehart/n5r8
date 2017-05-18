@@ -18,16 +18,32 @@ const color = {
 
 //playing with promises
 
-function setColor(color, t, cb) {
+function setColor(c, t, cb) {
+    if(typeof c === "string"){
+        //console.log("you asked for " + c);
+        switch (c){
+            case "red": c = color.red; break;
+            case "green": c = color.green; break;
+            case "blue": c = color.blue; break;
+            case "purple": c = color.purple; break;
+            case "pink": c = color.pink; break;
+            case "orange": c = color.orange; break;
+            case "yellow": c = color.yellow; break;
+            case "black": c = color.black; break;
+            case "white": c = color.white; break;
+            default: c = color.white;
+        }
+    }
+
 
     if (!t)
-            t=0;
+            t=1000;
 
     //nodeback
     if (cb) {
         setTimeout(
             function () {
-                ledmatrix.clear(color);
+                ledmatrix.clear(c);
                 return cb;
             }, t)
 
@@ -38,8 +54,8 @@ function setColor(color, t, cb) {
         return new Promise(function (resolve) {
             setTimeout(
                 function () {
-                    ledmatrix.clear(color);
-                    resolve(color);
+                    ledmatrix.clear(c);
+                    resolve(c);
                 }, t)
         })
     }

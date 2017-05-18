@@ -57,7 +57,7 @@ function startSensor(config, location) {
 
     this.intVar = setInterval( () => {
         let r = sensor();
-        if ( Math.abs(r - last) > (last * range.changeThreshold) || last == null){
+        if ( Math.abs(r - last) > (last * range.changeThreshold) || last === null){
             range.push({distance: r.toFixed(0), location: location});
             last = r;
         }
