@@ -37,15 +37,19 @@ app
 
     //curl "http://192.168.100.29:2368/rest/forward-5-0.5;backward-1;spinright-2-0.66"
 
-    .get('/rest', (reg, res)=>{
+    .get('/', (req,res)=>{
+        res.write('<p><a href="/rest">rest interface</a></p>');
+        res.write('<p><a href="/gamepad">Gamepad interface for touch device</a></p>');
+        res.write('<p><a href="/sensors">Sensor outpute</a></p>');
+        res.write('<p><a href="/webrtc">WebRTC camera & audio</a></p>');
+        res.end();
 
+    })
+    .get('/rest', (reg, res)=>{
+        res.send('n5r8 rest interface. Command-Duration-Speed. Example: <a href="https://n5r8.local/rest/forward-5-0.5;backward-1;spinright-2-0.66">https://n5r8.local/rest/forward-5-0.5;backward-1;spinright-2-0.66</a>');
     })
     .get('/rest/:commands', (req, res)=>{
 
-        if (!req.params.commands){
-            res.send("n5r8 rest interface")     //todo: this isn't working
-        }
-        else{
             let commands = req.params.commands.toLowerCase().split(';');
 
             res.setHeader('Content-Type', 'text/html');
@@ -78,7 +82,6 @@ app
             }
 
             parseCommand(commands[index]);
-        }
     })
 
     .get('/sensors', function (req, res, next) {
