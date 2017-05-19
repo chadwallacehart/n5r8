@@ -51,13 +51,15 @@ class Range extends Readable {
 
 function startSensor(config, location) {
     let sensor = usonic.createSensor(config.echoPin, config.triggerPin, config.timeout);
-    let last;
+    let last = -1;
 
     console.log('Usonic ' + location + ': ' + JSON.stringify(config));
 
     this.intVar = setInterval( () => {
         let r = sensor();
-        if ( Math.abs(r - last) > (last * range.changeThreshold) || last === null){
+        //Only send if change is over a specific % and if is not too large
+        //todo: && Math.abs(r - last) < range.maxChange)
+        if ( Math.abs(r - last) > (last * range.changeThreshold && Math.abs(r - last) < range.maxChange) || last === -1){
             range.push({distance: r.toFixed(0), location: location});
             last = r;
         }
@@ -66,9 +68,11 @@ function startSensor(config, location) {
 
 }
 
+
 let range = new Range({objectMode: true});
 
 range.changeThreshold = 0.10; //do this as a %
+range.maxChange = 50;   //prevent false spikes
 
 
 range.init = () => {

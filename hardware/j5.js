@@ -52,18 +52,18 @@ class Command {
         this.start = function start(t, speed, cb) {
 
             //Allow optional arguments and always check for callback
-            if (arguments.length < 3 && typeof speed == 'function') {
+            if (arguments.length < 3 && typeof speed === 'function') {
                 cb = speed;
                 speed = null;
             }
-            else if (arguments.length == 1 && typeof t == 'function') {
+            else if (arguments.length === 1 && typeof t === 'function') {
                 cb = t;
                 t = null;
                 speed = null;
             }
 
             //Cancel is hardware isn't ready
-            if (hwReady == false) {
+            if (hwReady === false) {
                 let err = "hardware not ready";
                 if (cb)
                     return err;
