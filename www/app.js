@@ -40,7 +40,7 @@ app
     .get('/', (req,res)=>{
         res.write('<p><a href="/rest">rest interface</a></p>');
         res.write('<p><a href="/gamepad">Gamepad interface for touch device</a></p>');
-        res.write('<p><a href="/sensors">Sensor outpute</a></p>');
+        res.write('<p><a href="/sensors">Sensor output</a></p>');
         res.write('<p><a href="/webrtc">WebRTC camera & audio</a></p>');
         res.end();
 

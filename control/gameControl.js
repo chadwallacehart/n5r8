@@ -143,10 +143,10 @@ function gameControl(command) {
             rover.lb.stop();
             break;
         case 'shootOn':
-            rover.disc.start();
+            rover.gun.start();
             break;
         case 'shootOff':
-            rover.disc.stop();
+            rover.gun.stop();
             break;
         case 'heartbeat':
             console.log('heartbeat');

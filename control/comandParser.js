@@ -34,7 +34,7 @@ function commandParser(input){
             case "shoot":
             case "s":
                 rover.shoot(input.duration);
-                return "shooting" + input.duration ? " for " + input.duration + " seconds" : "";
+                return "shooting " + input.duration ?  input.duration + " bullets" : "1 bullet";
 
         }
 

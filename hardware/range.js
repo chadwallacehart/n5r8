@@ -10,8 +10,8 @@ const sensor =
         {
             name: "frontRight",
             config: {
-                echoPin: 6,
-                triggerPin: 5,
+                echoPin: 5,
+                triggerPin: 6,
                 timeout: 750,   //750
                 delay: 60,      //60
                 rate: 5         //5
@@ -23,6 +23,28 @@ const sensor =
             config: {
                 echoPin: 19,
                 triggerPin: 13,
+                timeout: 750,   //750
+                delay: 60,      //60
+                rate: 5         //5
+            },
+            intVar: null
+        },
+        {
+            name: "rearRight",
+            config: {
+                echoPin: 21,
+                triggerPin: 26,
+                timeout: 750,   //750
+                delay: 60,      //60
+                rate: 5         //5
+            },
+            intVar: null
+        },
+        {
+            name: "rearLeft",
+            config: {
+                echoPin: 16,
+                triggerPin: 20,
                 timeout: 750,   //750
                 delay: 60,      //60
                 rate: 5         //5

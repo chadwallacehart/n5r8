@@ -19,23 +19,32 @@ class MyEmitter extends EventEmitter {
 }
 const emitter = new MyEmitter();
 
-let led, rf, rb, lf, lb, disc;
+let led, rf, rb, lf, lb, gun, servo;
 let hwReady = false;
 
 board.on("ready", function () {
-    led = new five.Led('GPIO21');    //LED        | PIN40 | GPIO21 | green wire
+    led = new five.Led('GPIO7');    //LED       | PIN8 | GPIO14 | green wire
+
+    //motor controls
     rf = new five.Pin('GPIO17');     //RF        | PIN11 | GPIO17 | green wire
     rb = new five.Pin('GPIO27');     //RB        | PIN13 | GPIO27 | red wire
     lf = new five.Pin('GPIO22');     //LF        | PIN15 | GPIO22 | white wire
     lb = new five.Pin('GPIO4');      //LB        | PIN7  | GPIO4  | yellow wire
-    disc = new five.Pin('GPIO12');   //disc        | PIN21 | GPIO12 | white wire
+
+    //gun controls
+    gun = new five.Pin('GPIO12');   //gun        | PIN21 | GPIO12 | white wire
+    servo = new five.Servo({
+        pin: "P1-12",
+        range: [-40, 280], //ToDo: make these configurable?
+        startAt: -40
+    });
 
     //initialize all the pins
     rf.low();
     rb.low();
     lf.low();
     lb.low();
-    disc.low();
+    gun.low();
 
     emitter.emit('hwReady');
 });
@@ -187,7 +196,7 @@ class Controller {
 }
 
 
-//todo= see why this doesn't seem to work below 50%
+//todo: see why this doesn't seem to work below 50%
 function oldForward(t, speed, cb) {
     if (hwReady == false)
         return false;
@@ -264,17 +273,30 @@ function oldBackward(t) {
 }
 
 
-function shoot(t) {
-    if (hwReady == false)
+function shoot(shots) {
+    if (hwReady === false)
         return;
 
-    if (isNaN(t)) t = 10;
-    console.log("Toggling disc launcher on for " + t + " seconds");
-    disc.high();
-    setTimeout(function () {
-            disc.low();
-        }
-        , t * 1000);
+    let interval = 600;
+
+    function stop(){
+        console.log("turning off gun");
+        gun.low();
+        process.exit();
+    }
+
+    function fire(){
+        servo.sweep({interval:interval});
+        setTimeout(()=>{
+            servo.stop();
+            servo.min();
+            stop();
+        }, count*interval*2);
+    }
+
+    console.log("Turning on gun. Ready to fire " + count + " times");
+    gun.high();
+    setTimeout(() => {fire()}, 2500);
 }
 
 function off() {
@@ -284,7 +306,7 @@ function off() {
     rb.low();
     lf.low();
     lb.low();
-    disc.low();
+    gun.low();
 }
 
 /***** Exports functions *****/
@@ -298,7 +320,7 @@ function init() {
         exports.backward = new Command("backward", [lb, rb]).start;
         exports.spinright = new Command("spinright", [lf, rb]).start;
         exports.spinleft = new Command("spinleft", [rf, lb]).start;
-        exports.shoot = new Command("shoot", [disc]).start;
+        exports.shoot = new Command("shoot", [gun]).start;
         exports.rightfront = new Command("rf", [rf]).start;
         exports.rightback = new Command("rb", [rb]).start;
         exports.leftfront = new Command("lf", [lf]).start;
@@ -309,7 +331,7 @@ function init() {
         exports.rb = new Controller("rb", [rb]);
         exports.lf = new Controller("lf", [lf]);
         exports.lb = new Controller("lb", [lb]);
-        exports.disc = new Controller("disc", [disc]);
+        exports.gun = new Controller("gun", [gun]);
 
         console.log("Rover hardware initialized");
         emitter.emit("configReady");

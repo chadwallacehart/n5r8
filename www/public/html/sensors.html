@@ -36,12 +36,22 @@
         <td>Range Front-Right</td>
         <td id="data-rangeFr"></td>
     </tr>
+    <tr>
+        <td>Range Rear-Left</td>
+        <td id="data-rangeRl"></td>
+    </tr>
+    <tr>
+        <td>Range Rear-Right</td>
+        <td id="data-rangeRr"></td>
+    </tr>
 </table>
 
 <script>
     let compassData = document.getElementById("data-compass");
     let rangeFrData = document.getElementById("data-rangeFr");
     let rangeFlData = document.getElementById("data-rangeFl");
+    let rangeRrData = document.getElementById("data-rangeRr");
+    let rangeRlData = document.getElementById("data-rangeRl");
 
     let socket = io();
     socket.on('init', (data) => {
@@ -58,6 +68,10 @@
                 rangeFrData.innerHTML = data.distance;
             if (data.location == "frontLeft")
                 rangeFlData.innerHTML = data.distance;
+            if (data.location == "rearRight")
+                rangeRrData.innerHTML = data.distance;
+            if (data.location == "rearLeft")
+                rangeRlData.innerHTML = data.distance;
         }
     });
 
