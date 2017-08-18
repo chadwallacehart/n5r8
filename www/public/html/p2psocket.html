@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>p2p socket.io test</title>
+</head>
+<body>
+<script src="../js/socket.io.js"></script>
+<script src="../js/socketiop2p.min.js"></script>
+<script>
+console.log("i did something");
+
+var socket = io();
+
+//var opts = {peerOpts: {trickle: false}, autoUpgrade: false};
+let opts = {peerOpts: {trickle: false}, autoUpgrade: true};
+var p2p = new P2P(socket, opts, function () {
+    p2p.emit('peer-obj', 'Hello there. I am ' + p2p.peerId)
+});
+
+
+function goPrivate () {
+    p2p.useSockets = false;
+    console.log = 'WebRTC connection established!';
+}
+
+//goPrivate();
+socket.on('init',  (data)=> {
+    p2p.usePeerConnection = true;
+    p2p.emit('peer-obj', { peerId: 'user1' });
+    console.log(data);
+});
+
+p2p.on('peer-msg', function(data){
+    console.log(data);
+});
+
+</script>
+</body>
+</html>

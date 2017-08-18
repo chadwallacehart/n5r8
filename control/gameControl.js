@@ -6,7 +6,7 @@ const rover = require('../hardware/j5');
 
 let motorState = {rfOn: false, rbOn: false, lfOn: false, lbOn: false};
 
-
+/*
 function gameControlOld(command) {
     //console.log(command.control);
     //console.log(motorState);
@@ -107,7 +107,7 @@ function gameControlOld(command) {
             console.log("unrecognized control message: " + command.control);
     }
 }
-
+*/
 
 function gameControl(command) {
     //console.log(command.control);

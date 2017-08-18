@@ -2,13 +2,13 @@
  * Created by chad on 3/5/17.
  */
 
-//ToDo: deprecate this module and use johnny-five if it works
+//ToDo: fix the reference here
 const usonic = require('mmm-usonic');
 
 const sensor =
     [
         {
-            name: "frontRight",
+            name: "front right",
             config: {
                 echoPin: 5,
                 triggerPin: 6,
@@ -19,7 +19,7 @@ const sensor =
             intVar: null
         },
         {
-            name: "frontLeft",
+            name: "front left",
             config: {
                 echoPin: 19,
                 triggerPin: 13,
@@ -30,7 +30,7 @@ const sensor =
             intVar: null
         },
         {
-            name: "rearRight",
+            name: "rear right",
             config: {
                 echoPin: 21,
                 triggerPin: 26,
@@ -41,7 +41,7 @@ const sensor =
             intVar: null
         },
         {
-            name: "rearLeft",
+            name: "rear left",
             config: {
                 echoPin: 16,
                 triggerPin: 20,
@@ -80,8 +80,8 @@ function startSensor(config, location) {
     this.intVar = setInterval( () => {
         let r = sensor();
         //Only send if change is over a specific % and if is not too large
-        //todo: && Math.abs(r - last) < range.maxChange)
-        if ( Math.abs(r - last) > (last * range.changeThreshold && Math.abs(r - last) < range.maxChange) || last === -1){
+        // and if it is not a miss reading (r = -1) and if is not the first reading (last = -1)
+        if ( Math.abs(r - last) > (last * range.changeThreshold && Math.abs(r - last) < range.maxChange) && r !== -1 || last === -1 ){
             range.push({distance: r.toFixed(0), location: location});
             last = r;
         }
@@ -104,8 +104,6 @@ range.init = () => {
         } else {
             console.log("Initializing sensor(s)");
             sensor.forEach( (sensor) => startSensor(sensor.config, sensor.name));
-            //startSensor(sensor.frontRight, "front-right");
-            //startSensor(sensor.frontLeft, "front-left");
         }
     });
 };

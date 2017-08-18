@@ -4,6 +4,7 @@ const ledmatrix = require('./hardware/ledmatrix'),
     range = require('./hardware/range'),
     rover = require('./hardware/j5'),
     www = require('./www/app.js');
+    r2talk = require('/home/pi/dev/r2d2talk')();
 
 const reflexes = require('./control/reflexes.js');
 
@@ -11,11 +12,29 @@ const reflexes = require('./control/reflexes.js');
 
 //todo: is there a reason to not just initialize on load for these? Maybe so I don't re init on every require?
 //Hardware init
-ledmatrix.init();
-compass.init();
-range.init();
-rover.init();
-//todo: one of the above is causing a promise error
+
+Promise.all([
+    r2talk.load(),
+    ledmatrix.init(),
+    compass.init(),
+    range.init(),
+    rover.init()
+    ]
+)
+    .then(()=>reflexes.init())
+    .catch((err)=>console.error("initialization error: " + err));
+
+/*
+r2talk.load()
+    .then(()=>{
+        ledmatrix.init();
+        compass.init();
+        range.init();
+        rover.init();
+    })
+    .then()
+    .all(()=>reflexes.init());
+*/
 
 
 

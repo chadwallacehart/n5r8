@@ -35,15 +35,17 @@ function setColor(c, t, cb) {
         }
     }
 
-
     if (!t)
             t=1000;
+
+    ledmatrix.clear(c);
 
     //nodeback
     if (cb) {
         setTimeout(
             function () {
-                ledmatrix.clear(c);
+                //ledmatrix.clear(c);
+                ledmatrix.clear();
                 return cb;
             }, t)
 
@@ -54,7 +56,7 @@ function setColor(c, t, cb) {
         return new Promise(function (resolve) {
             setTimeout(
                 function () {
-                    ledmatrix.clear(c);
+                    ledmatrix.clear();
                     resolve(c);
                 }, t)
         })

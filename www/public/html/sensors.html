@@ -60,19 +60,22 @@
 
     socket.on('sensor', (data) => {
         //console.log(data);
-        if (data.type == "compass")
+        if (data.type === "compass")
             compassData.innerHTML = data.heading;
-        if (data.type == "range") {
+        if (data.type === "range") {
 
-            if (data.location == "frontRight")
+            if (data.location === "front right")
                 rangeFrData.innerHTML = data.distance;
-            if (data.location == "frontLeft")
+            if (data.location === "front left")
                 rangeFlData.innerHTML = data.distance;
-            if (data.location == "rearRight")
+            if (data.location === "rear right")
                 rangeRrData.innerHTML = data.distance;
-            if (data.location == "rearLeft")
+            if (data.location === "rear left")
                 rangeRlData.innerHTML = data.distance;
+
         }
+
+
     });
 
 </script>
