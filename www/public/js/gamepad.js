@@ -3,7 +3,7 @@
  */
 
 //ToDo: remember out how to initialze this properly if socket is already loaded
-//let socket = socket || io();
+let socket = window.socket || io();
 
 socket.on('init', (data) => {
     console.log(data);

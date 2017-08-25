@@ -17,6 +17,7 @@
     "nodeimu": "^2.1.9",
     "raspi-io": "^7.2.4",
     "sense-hat-led": "^1.0.0",
-    "socket.io": "^1.7.3"
+    "socket.io": "^1.7.3",
+    "mmm-usonic": "git://github.com/mochman/mmm-usonic.git#fb43599"
   }
 }
