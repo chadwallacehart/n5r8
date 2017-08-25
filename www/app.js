@@ -1,7 +1,8 @@
 const express = require('express'),
     app = express(),
     server = require('http').createServer(app),
-    io = require('socket.io')(server);
+    io = require('socket.io')(server),
+    path = require('path');
 
 const roverControl = require('../control/comandParser.js');
 const gameControl = require('../control/gameControl.js');
@@ -16,10 +17,10 @@ const compass = require('../hardware/compass'),
 
 //console.log("process dir:" + process.cwd());
 
-let webrtcRunning = false;
-
 // Routing
-app.use(express.static(__dirname + '/public'));
+//app.use(express.static(__dirname + '/public'));
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 //added for CORS
 app.use((req, res, next) => {
@@ -88,29 +89,14 @@ app
     })
 
     .get('/gamepad', function (req, res, next) {
-        if (webrtcRunning === false) {
-            loadWebRTC();
-        }
         res.sendFile(__dirname + '/public/html/gamepad.html');
     })
 
-    //Load Chromium to send the WebRTC stream and view it
+    //uv4l based WebRTC stream
     .get('/webrtc', function (req, res, next) {
-        if (webrtcRunning === false) {
-            loadWebRTC();
-        }
-        res.sendFile(__dirname + '/public/html/webrtc-receiver.html');
+        res.sendFile(__dirname + '/public/html/webrtc.html');
     })
 
-    //Send a WebRTC stream
-    .get('/webrtc-send', function (req, res, next) {
-        res.sendFile(__dirname + '/public/html/webrtc-sender.html');
-    })
-
-    //view the WebRTC stream
-    .get('/webrtc-view', function (req, res, next) {
-        res.sendFile(__dirname + '/public/html/webrtc-receiver.html');
-    })
 
     //Say stuff
     .get('/talk/:words', (req, res, next) => {
